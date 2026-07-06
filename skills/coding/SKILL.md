@@ -1,9 +1,8 @@
 ---
 name: coding
 description: |
-  Coding conventions and patterns for the Many Designs project. Use when
-  writing, modifying, or reviewing any Racket/conscript study code in this
-  repository.
+  Coding conventions and patterns for conscript studies. Use when
+  writing, modifying, or reviewing any Racket/conscript study code.
 user-invocable: false
 ---
 
@@ -13,7 +12,9 @@ Before writing or modifying study code, also load these reference skills:
 
 ## Study File Template
 
-Every study file in `experiments/` follows this structure:
+Study files (kept in the project's study directory — see the "Study file
+location" field in `study-config.md`, e.g. `experiments/`) follow this
+structure:
 
 ```racket
 #lang conscript
@@ -54,10 +55,14 @@ Every study file in `experiments/` follows this structure:
 
 ## Naming Conventions
 
-- Study IDs are 5-character alphanumeric codes: `PCS27`, `TEQ73`, `ACH91`
-- Study variables: `(provide PCS27 PCS27-with-admin)`
+Follow the project's conventions, recorded in the "Study ID convention"
+field of `study-config.md` (schema in the `study-config` skill). Absent
+a stated convention, these defaults work well:
+
+- Study IDs are short unique alphanumeric codes (e.g. `PCS27`), used as
+  the study variable name: `(provide PCS27 PCS27-with-admin)`
 - Steps named descriptively: `welcome`, `instructions`, `game-control`, `final-result-competition`
-- Treatment flag: `competition?` (boolean)
+- A boolean treatment flag (e.g. `competition?`)
 - Treatment list: `treatments` (instance variable)
 
 ## Common Patterns
@@ -103,7 +108,7 @@ Every study file in `experiments/` follows this structure:
 
 ## CSS
 
-Every study defines `common-styles` with the same base CSS block. Copy from an existing study (e.g., `PCS27.rkt`) when creating new ones. Include `@common-styles` in every `@md{...}` step body.
+Every study defines `common-styles` with the same base CSS block. Copy from an existing study in the project or the congame examples when creating new ones. Include `@common-styles` in every `@md{...}` step body.
 
 ## Bot Models
 

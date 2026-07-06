@@ -1,17 +1,40 @@
 ---
 name: study-review
 description: |
-  Review a study for correctness and coding patterns, then upload and
-  test it. Use when the user wants to review, verify, or QA a study
-  before or after deployment.
+  Review a study for correctness and coding patterns, then test it and
+  document the review. When the project has a Playwright test suite, the
+  review runs test-first and lands as a PR; otherwise it runs a checklist
+  review plus upload and manual test. Use when the user wants to review,
+  verify, or QA a study.
 argument-hint: "[study-file]"
 allowed-tools: Bash(raco congame *)
 ---
 
-Review a study file for correctness, upload it, and run a test session.
+Review a conscript study for correctness and design fidelity, then test
+it and make the review trail easy to follow.
+
+How the review is delivered depends on the project's setup, read from
+`study-config.md` (schema in the `study-config` skill):
+
+- **PR pipeline** — if the project has a Playwright test suite
+  configured (a test directory + helpers), run the full test-first
+  pipeline (steps 4–9): write the test first, commit it, open a PR,
+  then fix the code. This makes it visible to a reader that the test
+  encodes the study **design**, not something bent retroactively to make
+  the existing code pass.
+- **Checklist + manual test** — if the project has no Playwright suite,
+  do the code review (steps 1–3), then upload and hand off for manual
+  testing (step 10). Skip the PR machinery.
 
 Before starting, load the `coding`, `racket-coding`, and
-`conscript-coding` skills for reference.
+`conscript-coding` skills for reference. If the PR pipeline applies,
+also load `playwright-test`.
+
+If `study-config.md` is missing, load the `study-config` skill and run
+its first-run setup — for a review you need only whether the project has
+a Playwright test suite and where the study/test/design-doc directories
+are, so ask just those and offer the full setup rather than forcing it —
+then proceed with the matching path.
 
 ## 1. Identify the study
 
@@ -24,8 +47,15 @@ Read the study file fully before proceeding.
 
 ## 2. Understand the study design
 
-Check whether the conversation already contains context about the
-study's design. If not, ask the user:
+If the project keeps design documents (per `study-config.md`), the
+canonical source is the design document for this study (e.g.
+`study designs/{STUDY-ID}.md` or `.pdf`). Read it in full. Extract the
+experimental task, treatments, payment structure, outcome variable,
+group structure, and information-timing rules. The design doc — not the
+existing code — is what the review and test encode.
+
+If there is no design document, or it is missing or ambiguous, ask the
+user:
 
 - What is the experimental task? (e.g. matrix task, die roll, public
   goods game)
@@ -37,8 +67,11 @@ Use their answers to verify that the code matches the intended design.
 
 ## 3. Code review
 
-Review the study code against the following checklist. Report each item
-as passing or failing, with specifics for any failures.
+Review the study code against the following checklist. Every item is
+a **review** check — note any failures as findings, but do **not**
+modify the file at this stage. Code changes happen later, only if
+needed and only as separate commits (PR pipeline) or after user
+approval (checklist path).
 
 ### Structure
 - [ ] File starts with `#lang conscript`
@@ -88,80 +121,304 @@ as passing or failing, with specifics for any failures.
 - [ ] Forms have `make-autofill-meta` with presets matching bot model
   kinds
 
+If the `-with-admin` variant or any of the above is missing, record it
+as a **Note** in the findings. The study can be reviewed and tested
+without it. (In the checklist path, offer to add it — see step 10.)
+
 ### Content
 - [ ] Instructions match the intended experimental design (verify
-  against user's answers from step 2)
+  against the design document — and the user's answers if you asked)
 - [ ] Payment amounts and descriptions are consistent throughout
 - [ ] Attention check text and expected answer are correct
+- [ ] Covariates: only flag if a covariate is *necessary for defining
+  treatment or control*. Covariates that exist only as regression
+  controls are out of scope for this review. A placeholder stub for
+  such fields may be a known project-wide interim state rather than a
+  per-study finding — check the project's convention in
+  `study-config.md`.
 
-## 4. Ensure `-with-admin` variant exists
+---
 
-If the study is missing a `-with-admin` variant with bot models, add
-one before reporting findings. This is required infrastructure, not
-optional — do not ask the user for permission, just add it.
+**Branch point.** If the project has a Playwright test suite, continue
+to step 4 (PR pipeline). Otherwise, jump to step 10 (checklist +
+manual test).
 
-### What to add
+---
 
-1. **Requires:** ensure `conscript/admin` and `racket/match` are in the
-   `(require ...)` form.
+## 4. Write the Playwright test (PR pipeline)
 
-2. **Provide:** add the `-with-admin` identifier to the `(provide ...)`
-   form (e.g. `NJJ10-with-admin`).
+Invoke the `playwright-test` skill to write a design-faithful test in
+the project's test directory (e.g.
+`tests/studies/{study-id-lowercase}.spec.ts`). Per that skill, the test
+encodes the **design**, not the current code's behavior. Soft
+assertions (`expect.soft(...)`) are used for design-fidelity checks so
+that divergences from the design surface in red without aborting the
+run.
 
-3. **`@meta[#:name "wait"]`:** add to every wait/refresh page (both
-   matchmaking wait pages and opponent-polling pages). Bots use this
-   marker to detect whether they are still waiting.
+When picking inputs per participant, think about **branch coverage** —
+the conditional branches inside steps (win vs. loss legs of a
+`did-win?` results page, check vs. no-check paths, treatment routing,
+first-time vs. subsequent rendering). Choose inputs so as many branches
+as possible are exercised by at least one participant. See "Branch
+coverage" in the `playwright-test` skill for details.
 
-4. **`make-autofill-meta`:** add to every form render function. Define
-   presets for two bot kinds that exercise different code paths (e.g.
-   `'discloser` / `'non-discloser`, `'liar` / `'honest`). Values
-   should be valid strings matching the form's expected input (radio
-   option values, number strings for number inputs, etc.).
+## 5. Verify compile and test status
 
-5. **Bot model:** define a `(make-bot-model kind)` function that
-   dispatches on step path using `match`. It must handle every step:
-   - Button/content pages → `(bot:continuer)`
-   - Form pages → `(bot:autofill kind)`
-   - Wait/refresh pages → check `(bot:find "meta[name=wait]")`: if
-     found `(void)`, otherwise `(bot:continuer)`
-   - Computation-only steps (skip) → `(bot)` (default case handles
-     these)
-   - Final step → `(bot:completer)`
+Before committing the test, upload the study and run the test to make
+sure it works correctly — meaning it executes the study end-to-end
+without infrastructure errors and produces meaningful pass/fail signals
+against the design assertions. Soft assertions failing on real findings
+are expected and welcome; what's not OK is silent wedges (e.g., a
+form-submit that doesn't navigate), null-match throws because a regex
+is wrong, or timeouts because a step was missed.
 
-6. **`make-admin-study`:** register the admin study with both bot
-   kinds:
-   ```racket
-   (define STUDY-with-admin
-     (make-admin-study
-      #:models
-      `((kind-a . ,(make-bot-model 'kind-a))
-        (kind-b . ,(make-bot-model 'kind-b)))
-      STUDY))
+```
+raco congame upload {STUDY-ID} {study-dir}/{path}
+cd tests && npx playwright test studies/{lowercase}.spec.ts
+```
+
+(Substitute the study directory and test directory from
+`study-config.md`.)
+
+Note: on first upload the user may need to create a study instance via
+the admin UI at `<server>/admin`. The test's `ensureFreshInstance`
+helper will then create per-run instances automatically.
+
+If the test errors for infrastructure reasons (helper bug, regex
+wrong, missed step, etc.), fix the test in the working tree and re-run
+until it produces clean results. Do not commit yet — the goal is for
+the PR's commit history to reflect intent and process (test-first,
+then fixes), not the step-by-step debugging of the test itself.
+
+Record:
+
+- **Compiles:** does `raco congame upload` succeed? The upload command
+  resolves module dependencies (which forces a parse) before
+  transmitting, so a non-zero exit means the study did not compile
+  and the printed Racket error is the cause. A successful upload (exit
+  0) is sufficient evidence that the study compiles.
+- **Test status:** capture which assertions passed and which failed.
+  Distinguish hard from soft failures. Map each soft failure to the
+  finding number it surfaces.
+
+## 6. Commit the test
+
+Once the test runs cleanly, stage and commit it as the **first** commit
+on the review branch. The commit must contain only the new test file —
+no changes to the study code.
+
+Follow the project's commit-trailer convention (see `study-config.md`).
+If the project attributes AI-assisted commits with a `Co-Authored-By`
+trailer, include it, and pass the message via a HEREDOC so the trailer
+survives shell quoting:
+
+```
+git commit -m "$(cat <<'EOF'
+Add Playwright test for {STUDY-ID}
+
+{1–3 sentences: what the test verifies, including the key
+design-fidelity assertions.}
+
+{Co-Authored-By trailer(s), per study-config.md}
+EOF
+)"
+```
+
+If a required trailer is missed, fix it before pushing with
+`git commit --amend` (the same HEREDOC pattern works there).
+
+Do not push yet.
+
+## 7. Open the PR
+
+Push the branch:
+```
+git push -u origin {branch}
+```
+
+Decide whether to open as draft or ready:
+
+- **Ready (`gh pr create` without `--draft`)** — only if the study
+  compiles, all hard assertions pass, all soft assertions pass, and
+  there are no Bug findings to fix in this PR.
+- **Draft (`gh pr create --draft`)** — in any other case (compile
+  failure, test failure, or any Bug finding that will be fixed in
+  this PR).
+
+Use this opening-comment template:
+
+```
+## Summary
+{1–3 sentences: what the PR adds/changes — at this point, just the
+test, plus any fixes that will follow.}
+
+## Review findings
+{Numbered list. Every finding gets exactly one label prefix:}
+1. **Bug — short title.** Longer explanation...
+2. **Note — short title.** ...
+3. **Question — short title.** ...
+
+## Compile and test status (initial)
+- **Compiles:** yes / no — {if no, paste the relevant raco output}
+- **Test:** `cd tests && npx playwright test studies/{lowercase}.spec.ts`
+  - Hard assertions: pass / N failures
+  - Soft assertions: pass / N failures
+  - {If any soft failures: list each with the finding it surfaces:
+    "soft failure on tied bonus → finding 3" (use a bare number, not
+    `#3` — GitHub auto-links `#N` to issues/PRs in the repo, which
+    will be wrong)}
+
+## Faithful to design
+{Bullet list of what the code gets right vs. the design.}
+
+## Test plan
+- [{x or space}] `cd tests && npx playwright test studies/{lowercase}.spec.ts` — {status}
+
+{Optional: "Related to #N" to link a tracking issue, if the project
+uses one — see study-config.md}
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+```
+
+### Referring to findings inside the PR body
+
+When the opening comment, commit messages, or summary comment cite a
+finding, write it as a bare number (e.g. "finding 3", "finding 1 +
+finding 2"). Do **not** write "#3" — GitHub auto-links `#N` in PR
+bodies and comments to issues or pull requests in the repo, which
+will be wrong here. The exception is a trailing "Related to #N"
+line, which intentionally links a tracking issue.
+
+### Finding labels
+
+Every numbered finding in "Review findings" MUST be prefixed with
+exactly one of these labels:
+
+- **Bug** — code diverges from the design or produces incorrect
+  results. A bug means something is *wrong* and needs to be fixed.
+- **Note** — observation, not a defect. Covers placeholders, naming
+  choices, tech debt, missing `@meta` tags, missing `-with-admin`,
+  cosmetic issues. The reader should understand this is informational,
+  not actionable in this PR.
+- **Question** — ambiguity between the design and the code that needs
+  the study author's clarification before it can be classified as a
+  Bug or a Note.
+
+### Draft review
+
+Show the full opening comment to the user before posting. The user
+may adjust labels, reorder findings, or revise wording.
+
+If the PR was opened as **ready**, the workflow ends here. No further
+commits or comments are needed.
+
+## 8. Apply fixes (only if PR opened as draft)
+
+Apply fixes in this order:
+
+**(a) Compile fixes first.** If `raco congame upload` failed,
+identify the minimum correction needed for the study to load and run.
+Avoid stupid shortcuts — do not silence errors by stubbing or
+deleting valid code, do not paper over a missing function or step.
+Make the corrections meaningful (e.g. rename a misspelled identifier,
+insert a missing step into the flow, fix a malformed at-expression).
+One commit per logical fix.
+
+**(b) Design-fidelity fixes next.** For each test failure that
+surfaces a Bug we will fix in this PR, add a separate commit with a
+narrowly scoped change. One commit per logical fix.
+
+Each fix commit follows the same commit-trailer convention as the test
+commit (see step 6). Use the HEREDOC pattern.
+
+After each fix commit:
+1. Re-upload (`raco congame upload ...`).
+2. Re-run the test (`cd tests && npx playwright test ...`).
+3. Push the commit (`git push`).
+
+### Out-of-scope findings — leave soft assertions red
+
+If a soft assertion remains red because the underlying finding is
+structural or otherwise out of scope for this PR (e.g., a divergence
+that requires substantial redesign of the study), **leave it red**.
+Do **not** disable, comment-skip, or rewrite the assertion to make
+the test green. The red soft assertion is the durable record of the
+open finding; the summary comment in step 9 will explicitly flag it.
+
+## 9. Mark PR ready and post the summary comment (only if PR opened as draft)
+
+After all fix commits have been pushed:
+
+1. Run the test one final time to confirm the current state:
+   ```
+   cd tests && npx playwright test studies/{lowercase}.spec.ts
    ```
 
-### Reference
+2. Mark the PR ready for review:
+   ```
+   gh pr ready {PR-number}
+   ```
 
-See the `coding` and `conscript-coding` skills for the exact patterns
-and bot action reference.
+3. Post **one** summary comment to the PR using
+   `gh pr comment {PR-number} --body "..."`. Use this template:
 
-## 5. Report findings
+   ```
+   ## Fixes applied
+
+   - {short hash} — {short description, e.g. "addresses finding 1"}
+   - {short hash} — ...
+
+   ## Test status after fixes
+
+   `cd tests && npx playwright test studies/{lowercase}.spec.ts`:
+   {result, including any remaining soft failures}
+
+   {If any soft assertions remain red, list them here:}
+   The following soft assertions remain red because the underlying
+   finding is out of scope for this PR:
+   - finding 4 — {one-line context}
+
+   🤖 Generated with [Claude Code](https://claude.com/claude-code)
+   ```
+
+   Use bare numbers ("finding 1", "finding 4") — not "#1" or "#4" —
+   so GitHub does not auto-link to issues or PRs.
+
+   Show the comment body to the user before posting.
+
+The PR is now ready for review. The reader can follow the work in
+order: test commit (the design spec) → fix commits (study code
+brought into line with the design) → opening comment (review
+findings + initial status) → summary comment (fixes + final status).
+
+## 10. Checklist path: report, upload, manual test
+
+(Only when the project has no Playwright test suite.)
+
+### Report findings
 
 Present the review as a checklist with pass/fail status. For any
-failures, explain the issue and suggest a fix. Ask the user if they want
-you to apply the fixes before proceeding to upload.
+failures, explain the issue and suggest a fix. Ask the user if they
+want you to apply the fixes before proceeding to upload.
 
-## 6. Upload
+### Ensure `-with-admin` variant exists
+
+If the study is missing a `-with-admin` variant with bot models, add
+one before uploading — this is required infrastructure for testing,
+not optional. See the `coding` and `conscript-coding` skills for the
+exact patterns (requires `conscript/admin` and `racket/match`; add the
+`-with-admin` identifier to `(provide ...)`; add `@meta[#:name "wait"]`
+to every wait/refresh page; add `make-autofill-meta` to every form;
+define a `(make-bot-model kind)` that dispatches on step path with
+`match`; register both bot kinds via `make-admin-study`).
+
+### Upload
 
 After the review passes (or fixes are applied), upload the study using
-the `upload` skill:
+the `upload` skill. Read the `(provide ...)` form to determine the
+study ID; prefer the `-with-admin` variant.
 
-```
-raco congame upload <study-id> <path>
-```
-
-Read the `(provide ...)` form in the file to determine the study ID.
-
-## 7. Test
+### Test
 
 **Important:** Before running simulations, remind the user that if this
 is the first time the study has been uploaded, they need to create a
@@ -170,14 +427,12 @@ study instance on the server first (via the admin UI at
 Wait for the user to confirm before proceeding.
 
 After the instance is ready, ask the user to manually test the study.
+Provide the test URL: `<server>/_anon-login/<study-id>` (default
+server: `http://127.0.0.1:5100`, or per `study-config.md`).
 
 **Note:** `raco congame simulate -n <N> <study-id>` opens browser
 windows but still requires manual interaction — it does NOT run bots
 automatically. Do not use it for unattended testing.
-
-Provide the user with the test URL:
-`<server>/_anon-login/<study-id>` (default server:
-`http://127.0.0.1:5100`)
 
 For studies with matchmaking, remind the user to open multiple
 sessions (one per group size) to test the pairing flow.
