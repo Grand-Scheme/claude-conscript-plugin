@@ -6,8 +6,9 @@ description: |
 user-invocable: false
 ---
 
-Read `study-config.md` in the project root for example repo paths.
-This file is created by `/create-study` on first use.
+Read `study-config.md` in the project root for example repo paths. That
+file is created on first use by whichever skill needs it (see the
+`study-config` skill for its schema and first-run setup).
 
 ## Built-in congame examples
 
