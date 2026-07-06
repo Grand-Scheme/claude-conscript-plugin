@@ -67,7 +67,8 @@ a stated convention, these defaults work well:
 
 ## Common Patterns
 
-**Treatment assignment** — every study uses balanced randomization:
+**Treatment assignment** — studies with treatment arms typically use
+balanced randomization (a solo survey with no treatments skips this):
 ```racket
 (defvar/instance treatments)
 (defvar competition?)
@@ -127,7 +128,8 @@ Use `make-autofill-meta` in forms to define autofill values for each bot kind.
 When writing or reviewing a study:
 - Every `defvar/instance` mutation is inside `with-study-transaction`
 - Forms use `(required)` validation on all fields
-- Treatment assignment uses balanced shuffle (groups of 2 or 4)
+- Treatment assignment (if the study has treatments) uses balanced
+  shuffle (groups of 2 or 4) or `assigning-treatments`
 - `(skip)` is called at end of computation-only steps
 - Study ends with `,(lambda () done)` not `∅`
 - Bot model handles all steps (especially wait/refresh steps with `(void)`)

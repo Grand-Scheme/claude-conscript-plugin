@@ -187,6 +187,23 @@ Used in lambda transitions: `,(lambda () done)`
 
 ## Forms
 
+**Require `conscript/form0` in any study that uses forms.** The form
+macros and widgets below — `form`, `form*`, `form+submit`, `input-text`,
+`input-number`, `submit-button`, `ensure`, the `binding/…` types, and
+`make-autofill-meta` — are provided by `conscript/form0`, which `#lang
+conscript` does **not** export by default. A study that uses them without
+`(require conscript/form0)` fails to compile with an "unbound identifier"
+error (e.g. `form+submit: unbound identifier`). Add the require at the top:
+
+```racket
+#lang conscript
+(require conscript/form0)
+```
+
+(`conscript/form` provides a smaller subset — `input-text`,
+`submit-button`, and friends — but not `form+submit`/`form*`; prefer
+`conscript/form0` for the patterns below.)
+
 ### Pattern 1: `form*` — Manual Form with Aggregated Result
 
 ```racket
@@ -317,7 +334,8 @@ Binding types: `binding/text`, `binding/number`, `binding/boolean`, `binding/ema
 
 ## Treatment Assignment
 
-Standard balanced randomization pattern used across all studies:
+Standard balanced randomization pattern, for studies that have treatment
+arms (a solo survey with no treatments needs none of this):
 
 ```racket
 (defvar/instance treatments)
