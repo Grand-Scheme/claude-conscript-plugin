@@ -1,5 +1,5 @@
 {
   "name": "claude-conscript-plugin",
-  "description": "Migrated from the conscript repo.",
-  "version": "1.0.0"
+  "description": "Write, review, test, and deploy conscript/congame studies.",
+  "version": "1.1.0"
 }

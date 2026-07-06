@@ -42,7 +42,8 @@ editor for `.rkt` files alongside Claude's output.
 | Skill | What it does |
 |-------|-------------|
 | `/create-study` | Generate a new study. On first run, asks about your project to create a `study-config.md` that persists your answers for all future runs. Then generates a `.rkt` file. |
-| `/study-review` | QA an existing study against a checklist |
+| `/study-review` | QA an existing study. When your project has a Playwright suite, runs a test-first review that lands as a PR; otherwise runs a checklist review plus a manual test. |
+| `/playwright-test` | Write a design-faithful Playwright end-to-end test that runs participants through a study on a congame server. |
 | `/upload` | Deploy a study to a congame server |
 
 ## Creating your first study
@@ -75,6 +76,9 @@ steps, forms, variables, study flow, CSS, and a `-with-admin` variant
 - **Bot models:** Automated test actors that drive a headless Firefox
   browser via Marionette, filling forms and clicking buttons to verify
   the study works.
-- **`study-config.md`:** Created by `/create-study` on first use. Stores
-  your project's domain, study patterns, and paths to example repos.
-  Read by Claude on every future `/create-study` invocation.
+- **`study-config.md`:** The project configuration file, created on
+  first use by whichever skill needs it (not only `/create-study`), and
+  hand-editable thereafter. Stores your project's domain, study patterns,
+  naming and design-doc conventions, servers, and Playwright setup. Read
+  by every skill so their behavior matches your project. The schema and
+  first-run setup live in the `study-config` skill.
