@@ -87,7 +87,8 @@ approval (checklist path).
 - [ ] Every mutation of a `defvar/instance` variable is inside
   `with-study-transaction`
 
-### Treatment assignment
+### Treatment assignment (if the study has treatments)
+Skip this whole section for a solo survey or any study with a single arm.
 - [ ] Uses balanced shuffle pattern (groups of 2 or 4) or
   `assigning-treatments`
 - [ ] Treatment assignment step calls `(skip)` at the end
@@ -236,14 +237,18 @@ Push the branch:
 git push -u origin {branch}
 ```
 
+Open the PR against the project's PR base branch (the "PR base branch"
+field in `study-config.md`; default: the repo's default branch). Pass it
+explicitly with `--base {base}` if it differs from the default.
+
 Decide whether to open as draft or ready:
 
-- **Ready (`gh pr create` without `--draft`)** — only if the study
-  compiles, all hard assertions pass, all soft assertions pass, and
-  there are no Bug findings to fix in this PR.
-- **Draft (`gh pr create --draft`)** — in any other case (compile
-  failure, test failure, or any Bug finding that will be fixed in
-  this PR).
+- **Ready (`gh pr create --base {base}` without `--draft`)** — only if
+  the study compiles, all hard assertions pass, all soft assertions
+  pass, and there are no Bug findings to fix in this PR.
+- **Draft (`gh pr create --base {base} --draft`)** — in any other case
+  (compile failure, test failure, or any Bug finding that will be fixed
+  in this PR).
 
 Use this opening-comment template:
 
@@ -427,12 +432,19 @@ study instance on the server first (via the admin UI at
 Wait for the user to confirm before proceeding.
 
 After the instance is ready, ask the user to manually test the study.
-Provide the test URL: `<server>/_anon-login/<study-id>` (default
+Provide the test URL: `<server>/_anon-login/<instance-slug>` (default
 server: `http://127.0.0.1:5100`, or per `study-config.md`).
 
-**Note:** `raco congame simulate -n <N> <study-id>` opens browser
-windows but still requires manual interaction — it does NOT run bots
-automatically. Do not use it for unattended testing.
+The `<instance-slug>` is the slug the user chose when creating the
+instance in the admin UI — **not** the study ID. The congame anon-login
+route resolves its argument as an instance slug
+(`lookup-study-instance/by-slug`), so passing the study ID only works if
+the instance was deliberately given a slug equal to the study ID.
+
+**Note:** `raco congame simulate -n <N> <instance-slug>` opens browser
+windows (pointed at `/_anon-login/<instance-slug>`) but still requires
+manual interaction — it does NOT run bots automatically. Do not use it
+for unattended testing.
 
 For studies with matchmaking, remind the user to open multiple
 sessions (one per group size) to test the pairing flow.

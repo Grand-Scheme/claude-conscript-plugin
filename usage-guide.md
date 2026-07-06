@@ -12,6 +12,10 @@ plugin teaches Claude how to write, review, and deploy Conscript studies.
 - **A project directory** with study `.rkt` files (or an empty one to
   start)
 - **Claude Code** — CLI, VS Code extension, or desktop app
+- **A running congame server** — only needed for `/upload` and for
+  testing (`/study-review`, `/playwright-test`). Writing and
+  code-reviewing studies works without one. Running a server locally
+  currently needs Docker (see the congame docs).
 
 ## Setup
 
@@ -71,6 +75,11 @@ steps, forms, variables, study flow, CSS, and a `-with-admin` variant
 
 - **Study:** A sequence of steps (pages) participants go through
 - **Step:** One page — can show content, collect form input, or run logic
+- **Instance:** A running deployment of a study on a server, identified
+  by a **slug** you choose when you create it in the admin UI
+  (`<server>/admin`). Participants join an instance at
+  `<server>/_anon-login/<slug>`. You must create an instance before
+  anyone (or any test) can run the study.
 - **`-with-admin` variant:** Every study needs one. It wraps the study
   with bot models so you can test it without clicking through manually.
 - **Bot models:** Automated test actors that drive a headless Firefox
