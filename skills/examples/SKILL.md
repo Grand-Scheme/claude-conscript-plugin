@@ -37,3 +37,27 @@ for these strings to find reference implementations:
 
 Search in congame examples first, then project-specific studies, then
 other repos listed in `study-config.md`.
+
+## If a congame source checkout isn't available (degrade + inform)
+
+The tables above assume a local **congame source checkout** (its path in
+`study-config.md` under "Example repos"). A newcomer who only
+package-installed congame won't have that tree. Degrade in this order, and
+**tell the user what happened** rather than silently finding nothing:
+
+1. **Configured source / example repos** (`study-config.md` → "Example
+   repos") — use these if present.
+2. **Installed package examples** — fall back to the `conscript/examples/`
+   directory inside the installed `conscript` package (locate it with
+   `racket -e '(collection-path "conscript")'` — *if installed*). Caveat
+   that a couple of these (e.g. `kitchen-sink.rkt`, `form.rkt`) can be
+   stale relative to the current framework.
+3. **Nothing found** — say so, and proceed from the `conscript-coding`
+   skill's inline patterns instead of example files.
+
+Whenever you fall back or find nothing, **be informative**: name what was
+missing (no source checkout / no example path configured / package not
+installed) and suggest the fix — e.g. "add your congame checkout path to
+`study-config.md` → Example repos for richer, current examples." A one-line
+suggestion to improve the project's `study-config.md` (or its docs) makes
+the next run better instead of hitting the same gap silently.

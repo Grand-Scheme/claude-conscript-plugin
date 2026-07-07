@@ -18,7 +18,7 @@ This skill reads project-specific paths and settings from
 `study-config.md` in the project root (schema in the `study-config`
 skill). The fields it uses:
 
-- **Study directory** — where `.rkt` study files live (e.g.
+- **Study file location** — where `.rkt` study files live (a directory or glob; there is not always a dedicated directory) (e.g.
   `experiments/`). Default: repo root.
 - **Design-document location** — the path convention for design docs
   (e.g. `study designs/{STUDY-ID}.md`), or "none" if the project does

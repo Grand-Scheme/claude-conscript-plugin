@@ -248,7 +248,7 @@ raco congame upload {STUDY-ID} {study-dir}/{path}
 cd tests && npx playwright test studies/{lowercase}.spec.ts
 ```
 
-(Substitute the study directory and test directory from
+(Substitute the study file location and test directory from
 `study-config.md`.)
 
 Note: on first upload the user may need to create a study instance via
@@ -306,6 +306,10 @@ Push the branch:
 ```
 git push -u origin {branch}
 ```
+
+`origin` is the default. If you are contributing from a **fork** (you
+don't have push access to the canonical repo), push to your fork's remote
+instead (e.g. `git push -u fork {branch}`) and open the PR from there.
 
 Open the PR against the project's PR base branch (the "PR base branch"
 field in `study-config.md`; default: the repo's default branch). Pass it

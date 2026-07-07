@@ -27,7 +27,7 @@ root). Use it when resolving a bare study ID to a file.
 When arguments are not fully provided, infer them from context:
 
 - If only a study ID is given (e.g. `/upload PCS27`), find the matching
-  `.rkt` file in the project's study directory (case-insensitive match).
+  `.rkt` file in the project's study file location (case-insensitive match).
 - If only a file path is given (e.g. `/upload experiments/my-study.rkt`),
   read the file and look at the `(provide ...)` form to find the study
   ID(s) it exports. Prefer the `-with-admin` variant if one is

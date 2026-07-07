@@ -5,9 +5,17 @@ detail found while generalizing the plugin, where it lives, and its
 disposition. Default disposition is **generalize away**; anything kept
 MD-flavored is kept only as an *illustrative example* and says so.
 
-Each entry: `location — what was there — disposition — veto?`. Strike any
-line you disagree with and I will change the disposition. **Delete this
-file before merge.**
+Each entry: `location — what was there — disposition — veto?`. The
+**disposition** is what I decided to do (usually "generalize away" = strip
+the Many-Designs-specific bit). **Mark any entry whose disposition you
+disagree with** — i.e. where you want a *different* outcome than written
+(most often: "no, KEEP this, don't strip it"). Marking = flag it as
+wrong, not "approve it".
+
+You do **not** need to edit this branch yourself: just tell me (here in
+chat, or as a PR review comment) which entries to change, and I apply the
+change and push. If you'd rather do it by hand: `gh pr checkout <n>`, edit,
+commit, push. **Delete this file before merge.**
 
 ---
 

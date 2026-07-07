@@ -12,7 +12,7 @@ Before writing or modifying study code, also load these reference skills:
 
 ## Study File Template
 
-Study files (kept in the project's study directory — see the "Study file
+Study files (kept in the project's study file location — see the "Study file
 location" field in `study-config.md`, e.g. `experiments/`) follow this
 structure:
 
