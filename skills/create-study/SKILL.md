@@ -32,5 +32,7 @@ the study — do not stop and ask the user to re-invoke.
    patterns (see the `examples` skill for search heuristics).
 4. Generate a `.rkt` file following the `coding` skill conventions.
    Include the `-with-admin` variant with bot models.
-5. Self-check against the `study-review` checklist. Fix issues.
+5. Self-check against the `study-review` checklist, then run its
+   server-optional adversarial pass (step 3b — parallel technical /
+   design-fidelity / idiomatic agents). Fix the findings.
 6. Present to user. Iterate. Offer `/upload` when ready.

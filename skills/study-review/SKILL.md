@@ -1,17 +1,24 @@
 ---
 name: study-review
 description: |
-  Review a study for correctness and coding patterns, then test it and
-  document the review. When the project has a Playwright test suite, the
-  review runs test-first and lands as a PR; otherwise it runs a checklist
-  review plus upload and manual test. Use when the user wants to review,
-  verify, or QA a study.
+  Review a study for correctness and coding patterns, run a server-optional
+  adversarial pass (parallel agents hunting technical, design-fidelity, and
+  idiomatic bugs), then test it and document the review. When the project has
+  a Playwright test suite, the review runs test-first and lands as a PR;
+  otherwise it runs a checklist review plus upload and manual test. Use when
+  the user wants to review, verify, or QA a study.
 argument-hint: "[study-file]"
 allowed-tools: Bash(raco congame *)
 ---
 
 Review a conscript study for correctness and design fidelity, then test
-it and make the review trail easy to follow.
+it and make the review trail easy to follow. The review has three layers:
+a static **checklist** (step 3), a **server-optional adversarial pass**
+that fans out parallel agents to hunt for bugs the checklist and the
+compiler both miss (step 3b), and a **live test** (Playwright PR pipeline
+or manual). Compiling and passing the checklist are necessary but not
+sufficient — the adversarial pass is what catches a study that compiles
+yet is wrong or non-fieldable.
 
 How the review is delivered depends on the project's setup, read from
 `study-config.md` (schema in the `study-config` skill):
@@ -137,6 +144,69 @@ without it. (In the checklist path, offer to add it — see step 10.)
   such fields may be a known project-wide interim state rather than a
   per-study finding — check the project's convention in
   `study-config.md`.
+
+---
+
+## 3b. Adversarial pass — parallel agents (server-optional)
+
+The checklist catches known-shape issues, but **compiling and passing the
+checklist is not evidence of correctness** — a study can do both and still be
+wrong or non-fieldable (real case: a study compiled and passed review yet never
+collected the location/timestamp its own identification strategy depended on).
+Run **three adversarial agents in parallel**, each told to *assume bugs exist
+and hunt for them*. This pass reads and reasons only — it needs **no server**,
+so run it in **both** delivery paths, before the live test. Fold every finding
+into the step-3 findings list under the same labels (Bug / Note / Question).
+
+Give every agent: the study file; the design document (or the design answers
+from step 2); the `conscript-coding`, `coding`, `racket-coding`, and `examples`
+skills; and, from `study-config.md`, the congame examples directory plus a
+known-good reference study. Require a **structured, ranked** report — each
+finding `SEVERITY | file:line | issue | why it breaks | concrete fix`, tagged
+**CONFIRMED** (provable against the reference API or an example) or
+**PLAUSIBLE** (suspicious, needs a live run) — and **no file dumps** (a short
+word cap keeps them synthesizable).
+
+- **Agent 1 — technical bugs** (runtime/framework errors the compiler misses).
+  Hunt: mismatches between `form*`/`form+submit` field names, the
+  `@rw["field" …]` keys, and `make-autofill-meta` keys; bot-autofill values
+  that are not valid options; `defvar` vs `defvar/instance` misuse and any
+  `defvar/instance` mutation outside `with-study-transaction` (and whether it
+  is safe under transaction retry); study-graph connectivity/reachability and
+  loop-counter resets; reads of possibly-undefined vars before they are set;
+  xexpr hazards (void nodes; **widgets pre-wrapped in `@md*` so `rw` cannot
+  bind them**; conditional rendering); whitelist-only `require`s; a bot model
+  clause for every step with a terminal `(bot:completer)`. Verify against the
+  reference API — do not invent framework behavior.
+- **Agent 2 — design-fidelity gaps** (design document ↔ implementation).
+  Enumerate **every** design decision — measures, scales, treatments, the
+  randomization scheme, order/timing rules, sampling and covariates, incentive
+  structure, flow/branching — and check each is implemented faithfully. Hunt
+  hardest for **silent omissions**: inputs the identification strategy depends
+  on that the code never collects (the variable an outcome or treatment is
+  defined on; a merge key; a screening gate). Classify each gap **MUST-FIX**
+  (breaks the study or its identification), **acceptable-for-pilot**, or
+  **panel/infrastructure-level** (cannot live in this one file — say where it
+  belongs).
+- **Agent 3 — idiomatic & simplicity.** Compare against the congame examples
+  and the reference study. Flag over-engineering, reinvention of framework
+  helpers (`assigning-treatments`, `form+submit`, the round-loop idiom),
+  non-idiomatic patterns, **config that does nothing** (dead lists), and
+  missing house conventions (e.g. the CSS-resource wrapper). Cite the example
+  file that shows each idiom. Favor **removing** complexity, never adding it;
+  separate should-fix from nice-to-have.
+
+**Models.** Run agents 1 and 2 on the strongest reasoning model available
+(bug-finding is subtle and high-value); agent 3 can use a lighter, faster
+model. Model choice is the reviewer's call.
+
+**Synthesis.** Collect all three reports, dedupe overlapping findings, and merge
+them into the step-3 findings list under the Bug / Note / Question labels. Treat
+a **PLAUSIBLE** finding as a Question (checklist path) or a soft assertion (PR
+path), never a silent pass. When an adversary finds a Bug and you fix it, the
+fix is **not** "verified" by the fixer alone — re-read the corrected code, or in
+the PR path encode the fix as a test assertion, before calling it resolved. Then
+continue into the delivery path below.
 
 ---
 

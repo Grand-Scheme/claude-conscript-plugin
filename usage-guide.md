@@ -46,7 +46,7 @@ editor for `.rkt` files alongside Claude's output.
 | Skill | What it does |
 |-------|-------------|
 | `/create-study` | Generate a new study. On first run, asks about your project to create a `study-config.md` that persists your answers for all future runs. Then generates a `.rkt` file. |
-| `/study-review` | QA an existing study. When your project has a Playwright suite, runs a test-first review that lands as a PR; otherwise runs a checklist review plus a manual test. |
+| `/study-review` | QA an existing study. Runs a static checklist plus a **server-optional adversarial pass** (parallel agents hunting technical, design-fidelity, and idiomatic bugs the compiler and checklist miss). When your project has a Playwright suite, then runs a test-first review that lands as a PR; otherwise a manual test. |
 | `/playwright-test` | Write a design-faithful Playwright end-to-end test that runs participants through a study on a congame server. |
 | `/upload` | Deploy a study to a congame server |
 
