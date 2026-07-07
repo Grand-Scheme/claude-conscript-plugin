@@ -30,7 +30,9 @@ only a convenience for producing one, never a gate.
 - Research domain: ...
 - Typical study structure: ... (rounds, treatments, measurements)
 - Constraints: ... (consent, payment, CSS conventions)
-- Study ID convention: ... (e.g. 5-char codes like PCS27, or free-form)
+- Study ID convention: ... (the project's naming rule for study IDs, if
+  any; leave blank for none — a descriptive slug of the study title is
+  then used, and the user can override)
 - Study file location: ... (directory/glob where .rkt studies live,
   e.g. `experiments/`; default: repo root)
 
@@ -39,7 +41,7 @@ only a convenience for producing one, never a gate.
 - <other repos with example studies>: <path>
 
 ## Design documents
-- Location: ... (path convention, e.g. `study designs/{STUDY-ID}.md`,
+- Location: ... (path convention, e.g. `design/<study>.md`,
   or "none" if the project does not keep design docs)
 
 ## Servers

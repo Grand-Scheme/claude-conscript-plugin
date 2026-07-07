@@ -26,8 +26,8 @@ structure:
 
 (provide study-name study-name-with-admin)
 
-;; CSS
-(define common-styles @style{ ... })
+;; CSS: shared styles applied via the study wrapper (see "CSS" below);
+;;      one-off page styles go in a @style{...} inside that step's @md
 
 ;; Variables
 (defvar answer)
@@ -56,11 +56,12 @@ structure:
 ## Naming Conventions
 
 Follow the project's conventions, recorded in the "Study ID convention"
-field of `study-config.md` (schema in the `study-config` skill). Absent
-a stated convention, these defaults work well:
+field of `study-config.md` (schema in the `study-config` skill). If the
+project states no convention, use a short descriptive name for the study
+— e.g. a kebab-case slug of its title — as the study variable name:
+`(provide my-study my-study-with-admin)`. The user can set or override
+the convention at any time.
 
-- Study IDs are short unique alphanumeric codes (e.g. `PCS27`), used as
-  the study variable name: `(provide PCS27 PCS27-with-admin)`
 - Steps named descriptively: `welcome`, `instructions`, `game-control`, `final-result-competition`
 - A boolean treatment flag (e.g. `competition?`)
 - Treatment list: `treatments` (instance variable)
@@ -109,7 +110,18 @@ balanced randomization (a solo survey with no treatments skips this):
 
 ## CSS
 
-Every study defines `common-styles` with the same base CSS block. Copy from an existing study in the project or the congame examples when creating new ones. Include `@common-styles` in every `@md{...}` step body.
+For CSS shared across the whole study, apply it once with the study's
+`#:wrapper` (using `@add-css`, provided by `#lang conscript`):
+
+```racket
+(defstudy my-study
+  #:wrapper @add-css{ .choices { display: flex; gap: 40px; } }
+  [welcome --> task --> the-end])
+```
+
+For a stylesheet in a file, use `@add-css-resource[css]` with a
+`define-static-resource`. For CSS specific to a single page, put a
+`@style{...}` block inside that step's `@md{...}` body.
 
 ## Bot Models
 

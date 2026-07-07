@@ -133,17 +133,26 @@ same namespace and variable names.
 
 ### CSS
 
-```racket
-(define common-styles
-  @style{
-    body { background: #f5f5f5; }
-    .container { background: white; padding: 40px; ... }
-    button { background: #007bff; color: white; ... }
-  })
+Shared across the whole study — apply once with the study's `#:wrapper`
+(via `@add-css`, provided by `#lang conscript`):
 
-;; Include in every step:
+```racket
+(defstudy my-study
+  #:wrapper @add-css{
+    body { background: #f5f5f5; }
+    .container { background: white; padding: 40px; }
+    button { background: #007bff; color: white; }
+  }
+  [my-step --> the-end])
+```
+
+For a stylesheet in a file, use `@add-css-resource[css]` with a
+`define-static-resource`. For CSS specific to one page, put a
+`@style{...}` block in that step's `@md{...}`:
+
+```racket
 (defstep (my-step)
-  @md{@common-styles
+  @md{@style{ .highlight { color: crimson; } }
       # Title
       ...})
 ```

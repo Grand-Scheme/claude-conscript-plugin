@@ -56,7 +56,7 @@ Read the study file fully before proceeding.
 
 If the project keeps design documents (per `study-config.md`), the
 canonical source is the design document for this study (e.g.
-`study designs/{STUDY-ID}.md` or `.pdf`). Read it in full. Extract the
+`design/<study>.md` or `.pdf`). Read it in full. Extract the
 experimental task, treatments, payment structure, outcome variable,
 group structure, and information-timing rules. The design doc — not the
 existing code — is what the review and test encode.
@@ -85,8 +85,9 @@ approval (checklist path).
 - [ ] `(provide ...)` exports the study and its `-with-admin` variant
 - [ ] `(require ...)` only uses whitelisted modules (see
   `conscript-coding` skill)
-- [ ] `common-styles` CSS is defined and included in every `@md{...}`
-  step
+- [ ] Shared CSS is applied via the study's `#:wrapper` (`@add-css` /
+  `@add-css-resource`); any page-specific CSS uses a `@style{...}` block
+  in that step
 
 ### Variables
 - [ ] All participant state uses `defvar`

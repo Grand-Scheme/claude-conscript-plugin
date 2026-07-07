@@ -15,7 +15,7 @@ Upload a study to a congame server using `raco congame upload`.
 raco congame upload <study-id> <path>
 ```
 
-- `<study-id>` — the study identifier (e.g. `pcs27`, `teq73`)
+- `<study-id>` — the study identifier (e.g. `my-study`)
 - `<path>` — path to the `.rkt` file (e.g. `experiments/my-study.rkt`)
 
 The project's study-file directory is recorded in `study-config.md`
@@ -26,7 +26,7 @@ root). Use it when resolving a bare study ID to a file.
 
 When arguments are not fully provided, infer them from context:
 
-- If only a study ID is given (e.g. `/upload PCS27`), find the matching
+- If only a study ID is given (e.g. `/upload my-study`), find the matching
   `.rkt` file in the project's study file location (case-insensitive match).
 - If only a file path is given (e.g. `/upload experiments/my-study.rkt`),
   read the file and look at the `(provide ...)` form to find the study
@@ -41,7 +41,7 @@ When arguments are not fully provided, infer them from context:
 ## Prefer `-with-admin` variants
 
 When resolving the study ID, always read the `(provide ...)` form in the
-file. If a `-with-admin` variant is exported (e.g. `PCS27-with-admin`),
+file. If a `-with-admin` variant is exported (e.g. `my-study-with-admin`),
 upload that instead of the base study. The `-with-admin` variant
 includes bot models for testing and is a strict superset of the base
 study.

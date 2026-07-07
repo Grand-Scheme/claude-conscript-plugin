@@ -21,7 +21,7 @@ skill). The fields it uses:
 - **Study file location** — where `.rkt` study files live (a directory or glob; there is not always a dedicated directory) (e.g.
   `experiments/`). Default: repo root.
 - **Design-document location** — the path convention for design docs
-  (e.g. `study designs/{STUDY-ID}.md`), or "none" if the project does
+  (e.g. `design/<study>.md`), or "none" if the project does
   not keep design docs.
 - **Test directory** — where spec files live (e.g. `tests/studies/`).
 - **Test helpers** — where the shared Playwright helper library lives
