@@ -23,15 +23,43 @@ yet is wrong or non-fieldable.
 How the review is delivered depends on the project's setup, read from
 `study-config.md` (schema in the `study-config` skill):
 
-- **PR pipeline** — if the project has a Playwright test suite
-  configured (a test directory + helpers), run the full test-first
+- **PR pipeline (Playwright)** — if the project has a Playwright test
+  suite configured (a test directory + helpers), run the full test-first
   pipeline (steps 4–9): write the test first, commit it, open a PR,
   then fix the code. This makes it visible to a reader that the test
   encodes the study **design**, not something bent retroactively to make
   the existing code pass.
-- **Checklist + manual test** — if the project has no Playwright suite,
-  do the code review (steps 1–3), then upload and hand off for manual
-  testing (step 10). Skip the PR machinery.
+- **congame bots** — if there is no Playwright suite but the study has a
+  `-with-admin` bot variant (or you can add one), a live bot run is the
+  preferred automated test: it exercises the real study end-to-end and
+  catches runtime bugs the compiler misses. See **"Getting congame bots
+  working"** below for what it requires. Deliver as checklist + a live
+  bot run (no PR machinery unless the project wants it).
+- **Checklist + manual test** — if neither a Playwright suite nor a
+  working bot setup is available, do the code review (steps 1–3 + 3b) and
+  either upload and hand off for manual testing (step 10) **or, if the
+  study cannot be run at all, deliver a source-only review** and say
+  plainly that no live test was performed. Skip the PR machinery.
+
+### Getting congame bots working
+The framework's bot runner drives the study through a real browser via
+**marionette + Firefox** (`raco congame simulate <slug>`, or the admin
+"Manage Bots → Spawn" on a study instance). To use it you need:
+- a **`-with-admin` variant** built with `make-admin-study #:models`, and a
+  **bot model** with a clause per step (`bot:autofill` for forms,
+  `bot:completer` for terminal steps) plus `make-autofill-meta` presets on
+  every form (see "Bot testing" in the checklist);
+- a running **congame server** (Docker) with the study **uploaded** and an
+  **instance created**;
+- **Firefox + geckodriver** reachable by the server, and — because the
+  spawn path runs Firefox non-headless — a display (e.g. **Xvfb** in a
+  container). NB: on Apple-Silicon hosts an amd64 Firefox image crashes
+  under Rosetta (`ld-linux-x86-64.so.2`); use an arm64 Firefox or run the
+  bots from an arm64/native environment.
+If Firefox/marionette cannot be made to run in the environment, an
+**HTTP walkthrough** (drive each step by reading its `formular-autofill`
+meta and POSTing the values) is a browserless equivalent that exercises
+the same steps; note in the review that this substitute was used.
 
 Before starting, load the `coding`, `racket-coding`, and
 `conscript-coding` skills for reference. If the PR pipeline applies,

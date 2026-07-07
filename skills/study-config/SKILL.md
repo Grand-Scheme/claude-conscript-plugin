@@ -39,6 +39,9 @@ only a convenience for producing one, never a gate.
 ## Example repos
 - congame: <path>
 - <other repos with example studies>: <path>
+- Reference study: ... (optional — path to one known-good study file to
+  imitate; `study-review`'s adversarial pass uses it as the gold
+  reference. Blank = pick a close example at review time.)
 
 ## Design documents
 - Location: ... (path convention, e.g. `design/<study>.md`,
@@ -83,10 +86,15 @@ describing their study patterns, read it and use it instead of asking.
 
 State the intent behind each area and let the user answer in their own
 terms; do not march through a fixed questionnaire — the intent draws out
-better answers than a rigid script. Write the answers to
-`study-config.md`, omitting fields the user does not know (their defaults
-apply) and whole sections that do not apply (e.g. the Review-pipeline
-section when there is no Playwright suite).
+better answers than a rigid script. These are **project-wide defaults**,
+not per-study questions: a user with a single study and no lab
+conventions yet should skip anything that doesn't apply and can answer
+"none / not sure" freely (defaults then apply). The two fields that most
+affect later skills are the **example-repo path** and the **study file
+location** — make sure those are captured; the rest is optional. Write
+the answers to `study-config.md`, omitting fields the user does not know
+(their defaults apply) and whole sections that do not apply (e.g. the
+Review-pipeline section when there is no Playwright suite).
 
 A skill that needs only one or two fields — e.g. `upload` resolving a
 study path, or `study-review` checking only whether a Playwright suite

@@ -36,7 +36,12 @@ for these strings to find reference implementations:
 | Autofill metadata | `make-autofill-meta` |
 
 Search in congame examples first, then project-specific studies, then
-other repos listed in `study-config.md`.
+other repos listed in `study-config.md`. These greps also hit library
+internals (files under `conscript/`, e.g. `base.rkt`, `form0.rkt`,
+`survey-tools.rkt`) — those are framework source, not example studies.
+Restrict the search to example/study directories
+(`congame-example-study/`, `studies/`, and any study dir from
+`study-config.md`) to keep hits to real reference studies.
 
 ## If a congame source checkout isn't available (degrade + inform)
 

@@ -11,7 +11,7 @@ user-invocable: false
 Complete reference for the `#lang conscript` study-authoring DSL built
 on the congame framework.
 
-Documentation: https://joeldueck.com/what-about/congame/Conscript.html
+Documentation: https://docs.totalinsightmanagement.com/congame/Conscript.html
 
 ## Study Structure
 

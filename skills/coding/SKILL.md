@@ -69,7 +69,14 @@ the convention at any time.
 ## Common Patterns
 
 **Treatment assignment** — studies with treatment arms typically use
-balanced randomization (a solo survey with no treatments skips this):
+balanced randomization (a solo survey with no treatments skips this).
+The instance-wide balanced-shuffle pattern below (drawing from a pool
+refilled in groups, e.g. `'(#t #t #f #f)`) is the canonical shape for
+**multi-participant studies that interact and need balanced arms across
+participants** (e.g. matchmaking a competition vs. control condition);
+`competition?` is just one example treatment flag. For pairing/grouping
+participants, see the matchmaking API (`make-matchmaker`) in the
+`conscript-coding` skill.
 ```racket
 (defvar/instance treatments)
 (defvar competition?)
@@ -134,6 +141,15 @@ Studies should provide a `*-with-admin` variant. Bot models dispatch on step pat
     [_                    (bot)]))
 ```
 Use `make-autofill-meta` in forms to define autofill values for each bot kind.
+
+The second argument (`bot` above) is the *default continuation* for the
+step; congame examples often name it `proc` and fall through with
+`(proc)` — e.g. `(match k [`(*root* end) bot:completer] [_ (proc)])`.
+For a study with only a terminal completer, the simplest form is inline
+in `defstudy`: `[end (with-bot end bot:completer)]` (see
+`congame-example-study/conscript-with-admin.rkt`). All three shapes are
+equivalent; use the `make-bot-model` form above when different bot
+"kinds" autofill different values.
 
 ## Checklist
 
