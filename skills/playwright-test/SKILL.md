@@ -141,6 +141,22 @@ these skills assume; treat it as the contract to look for, not a
 guarantee of exact names. If the project has existing spec files, read
 one as a working reference for its conventions.
 
+**If the project has NO helper library yet, scaffold it from this
+skill's `template/` directory** — it ships a ready, project-agnostic
+implementation of the whole interface (`helpers/{study,admin,matchmaking,drive}.ts`,
+`helpers/index.ts`, `playwright.config.ts`, `package.json`, and
+`studies/example.spec.ts`). Copy `template/` into the project's test
+directory, then:
+
+```bash
+cd tests && npm install && npx playwright install chromium
+```
+
+Nothing in `template/` is study- or project-specific. Set the server via
+`SERVER_URL` (default `http://127.0.0.1:5100`) and the admin creds via
+`ADMIN_EMAIL`/`ADMIN_PASSWORD` (default `admin@congame.local`/`admin`)
+if the local server differs.
+
 ### Narrative header
 
 Start the file with a block comment explaining the test in plain
@@ -453,13 +469,12 @@ For visual debugging: `npx playwright test --headed`
 The server URL defaults to `http://127.0.0.1:5100` (override with the
 `SERVER_URL` env var, or set it in `study-config.md`).
 
-## 8. Reference: assumed helper interface
+## 8. Reference: helper interface (shipped in `template/helpers/`)
 
-These skills assume a shared helper library in the project's test
-helpers directory exposing roughly the following interface. Read the
-project's actual helpers and adapt names as needed; if the project has
-no such library yet, these are the helpers a congame Playwright suite
-typically needs.
+The `template/helpers/` directory in this skill is a ready, project-agnostic
+implementation of the interface below — copy it rather than hand-writing.
+Read the project's actual helpers and adapt names as needed if a project
+already has its own library.
 
 | Function | Purpose |
 |---|---|
@@ -481,6 +496,25 @@ typically needs.
 | `findStudyId(page, studyName)` | Find a study's numeric ID from the `/admin` page |
 | `createStudyInstance(page, studyName, slug)` | Create a new instance via admin dashboard (page must be logged in) |
 | `ensureFreshInstance(browser, studyName, slug?)` | Create a fresh instance with a unique slug; handles login/cleanup automatically. Use in `test.beforeAll` for clean test state. |
+| `createInstanceById(browser, studyId, slug)` | Create an instance by NUMERIC study id (from `/admin/studies/<id>`) — use when study names are ambiguous substrings of each other |
+| `autofillFromMeta(page)` | Fill every field on the current page from the study's own `make-autofill-meta` (`<meta name="formular-autofill">`), dispatching on select/radio/text/number |
+| `driveParticipant(page, maxSteps?)` | Generic SMOKE driver: walk a participant to the terminal page — fill+submit any form (from its autofill meta), click next-buttons, wait through refresh/matchmaking/time-gate pages; throws on a server-error page. Returns `{steps, sawWaitingPage, filledFields, finalText}` |
+
+### The generic smoke driver (`drive.ts`)
+
+`driveParticipant` runs a study end-to-end with **no per-page knowledge**: it
+reads each page's own `make-autofill-meta` (the same bot answers the marionette
+bots use) and fills by field name. This is the fastest "does the code run at
+all" check — it exercises every reached page's render + validators and fails
+on any server error, unreachable step, or stuck gate. It is a SMOKE test, not
+a design-fidelity test: it submits whatever the study says its bot answers are,
+so it cannot tell you the study implements the intended *experiment* (that's
+what the hand-written, design-derived specs in sections 2–4 are for). Reach for
+`driveParticipant` first to confirm the study isn't broken, then write the
+design-fidelity spec. See `template/studies/example.spec.ts`.
+
+For studies with time-gates (multi-wave panels, scheduled waves), upload a
+SHORT-gap test config so the gates are walkable in seconds, not weeks.
 
 ## 9. Working examples
 
