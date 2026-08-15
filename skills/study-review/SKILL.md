@@ -108,6 +108,34 @@ modify the file at this stage. Code changes happen later, only if
 needed and only as separate commits (PR pipeline) or after user
 approval (checklist path).
 
+### The bug ledger — every recorded conscript bug, every review (Marc, 2026-08-15)
+
+Before the checklist below, read `~/projects/worklog/bugs/bugs.jsonl`
+(one JSON record per line) and select every record whose `project` is a
+conscript study repo (e.g. `climate-heat-beliefs`, or `component`
+mentioning conscript/congame). Treat that whole set as an additional
+checklist against this study — not only the entries with a greppable
+`anti_pattern`; the semantic ones (served-elicitation-with-nothing-behind-it,
+wave-window classes, export/manifest classes) are the ones that recur.
+Report a hit as "known bug class — ledger `<id>`".
+
+Two graduated rules apply as findings in their own right:
+1. **vacuous-test** — any assertion or test this review relies on that
+   has not been shown able to fail (a green suite is evidence only if
+   you have seen it red).
+2. **repair-introduced** — a fix applied in the final round with no
+   fresh pass over it is a finding. (This inherits the standing
+   fix→review→fix invariant; like every rule here, override with a
+   stated reason is allowed.)
+
+**Override principle (Marc, verbatim intent): every ledger hit is
+advisory.** Dismiss explicitly — one line saying why — only the
+classes that were genuine close calls (the anti_pattern's shape
+appears in this study but is handled). For everything else one summary
+line suffices: "Checked all N conscript ledger entries; besides the
+findings and close calls above, none apply." The ledger gates
+attention, never action.
+
 ### Structure
 - [ ] File starts with `#lang conscript`
 - [ ] `(provide ...)` exports the study and its `-with-admin` variant
