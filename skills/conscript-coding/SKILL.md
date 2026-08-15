@@ -11,7 +11,7 @@ user-invocable: false
 Complete reference for the `#lang conscript` study-authoring DSL built
 on the congame framework.
 
-Documentation: https://joeldueck.com/what-about/congame/Conscript.html
+Documentation: https://docs.totalinsightmanagement.com/congame/Conscript.html
 
 ## Study Structure
 
@@ -133,17 +133,26 @@ same namespace and variable names.
 
 ### CSS
 
-```racket
-(define common-styles
-  @style{
-    body { background: #f5f5f5; }
-    .container { background: white; padding: 40px; ... }
-    button { background: #007bff; color: white; ... }
-  })
+Shared across the whole study — apply once with the study's `#:wrapper`
+(via `@add-css`, provided by `#lang conscript`):
 
-;; Include in every step:
+```racket
+(defstudy my-study
+  #:wrapper @add-css{
+    body { background: #f5f5f5; }
+    .container { background: white; padding: 40px; }
+    button { background: #007bff; color: white; }
+  }
+  [my-step --> the-end])
+```
+
+For a stylesheet in a file, use `@add-css-resource[css]` with a
+`define-static-resource`. For CSS specific to one page, put a
+`@style{...}` block in that step's `@md{...}`:
+
+```racket
 (defstep (my-step)
-  @md{@common-styles
+  @md{@style{ .highlight { color: crimson; } }
       # Title
       ...})
 ```
@@ -186,6 +195,23 @@ The action thunk is called before transition. Use for saving data:
 Used in lambda transitions: `,(lambda () done)`
 
 ## Forms
+
+**Require `conscript/form0` in any study that uses forms.** The form
+macros and widgets below — `form`, `form*`, `form+submit`, `input-text`,
+`input-number`, `submit-button`, `ensure`, the `binding/…` types, and
+`make-autofill-meta` — are provided by `conscript/form0`, which `#lang
+conscript` does **not** export by default. A study that uses them without
+`(require conscript/form0)` fails to compile with an "unbound identifier"
+error (e.g. `form+submit: unbound identifier`). Add the require at the top:
+
+```racket
+#lang conscript
+(require conscript/form0)
+```
+
+(`conscript/form` provides a smaller subset — `input-text`,
+`submit-button`, and friends — but not `form+submit`/`form*`; prefer
+`conscript/form0` for the patterns below.)
 
 ### Pattern 1: `form*` — Manual Form with Aggregated Result
 
@@ -317,7 +343,8 @@ Binding types: `binding/text`, `binding/number`, `binding/boolean`, `binding/ema
 
 ## Treatment Assignment
 
-Standard balanced randomization pattern used across all studies:
+Standard balanced randomization pattern, for studies that have treatment
+arms (a solo survey with no treatments needs none of this):
 
 ```racket
 (defvar/instance treatments)

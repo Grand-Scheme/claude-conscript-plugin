@@ -1,9 +1,8 @@
 ---
 name: coding
 description: |
-  Coding conventions and patterns for the Many Designs project. Use when
-  writing, modifying, or reviewing any Racket/conscript study code in this
-  repository.
+  Coding conventions and patterns for conscript studies. Use when
+  writing, modifying, or reviewing any Racket/conscript study code.
 user-invocable: false
 ---
 
@@ -13,7 +12,9 @@ Before writing or modifying study code, also load these reference skills:
 
 ## Study File Template
 
-Every study file in `experiments/` follows this structure:
+Study files (kept in the project's study file location — see the "Study file
+location" field in `study-config.md`, e.g. `experiments/`) follow this
+structure:
 
 ```racket
 #lang conscript
@@ -25,8 +26,8 @@ Every study file in `experiments/` follows this structure:
 
 (provide study-name study-name-with-admin)
 
-;; CSS
-(define common-styles @style{ ... })
+;; CSS: shared styles applied via the study wrapper (see "CSS" below);
+;;      one-off page styles go in a @style{...} inside that step's @md
 
 ;; Variables
 (defvar answer)
@@ -54,15 +55,28 @@ Every study file in `experiments/` follows this structure:
 
 ## Naming Conventions
 
-- Study IDs are 5-character alphanumeric codes: `PCS27`, `TEQ73`, `ACH91`
-- Study variables: `(provide PCS27 PCS27-with-admin)`
+Follow the project's conventions, recorded in the "Study ID convention"
+field of `study-config.md` (schema in the `study-config` skill). If the
+project states no convention, use a short descriptive name for the study
+— e.g. a kebab-case slug of its title — as the study variable name:
+`(provide my-study my-study-with-admin)`. The user can set or override
+the convention at any time.
+
 - Steps named descriptively: `welcome`, `instructions`, `game-control`, `final-result-competition`
-- Treatment flag: `competition?` (boolean)
+- A boolean treatment flag (e.g. `competition?`)
 - Treatment list: `treatments` (instance variable)
 
 ## Common Patterns
 
-**Treatment assignment** — every study uses balanced randomization:
+**Treatment assignment** — studies with treatment arms typically use
+balanced randomization (a solo survey with no treatments skips this).
+The instance-wide balanced-shuffle pattern below (drawing from a pool
+refilled in groups, e.g. `'(#t #t #f #f)`) is the canonical shape for
+**multi-participant studies that interact and need balanced arms across
+participants** (e.g. matchmaking a competition vs. control condition);
+`competition?` is just one example treatment flag. For pairing/grouping
+participants, see the matchmaking API (`make-matchmaker`) in the
+`conscript-coding` skill.
 ```racket
 (defvar/instance treatments)
 (defvar competition?)
@@ -103,7 +117,18 @@ Every study file in `experiments/` follows this structure:
 
 ## CSS
 
-Every study defines `common-styles` with the same base CSS block. Copy from an existing study (e.g., `PCS27.rkt`) when creating new ones. Include `@common-styles` in every `@md{...}` step body.
+For CSS shared across the whole study, apply it once with the study's
+`#:wrapper` (using `@add-css`, provided by `#lang conscript`):
+
+```racket
+(defstudy my-study
+  #:wrapper @add-css{ .choices { display: flex; gap: 40px; } }
+  [welcome --> task --> the-end])
+```
+
+For a stylesheet in a file, use `@add-css-resource[css]` with a
+`define-static-resource`. For CSS specific to a single page, put a
+`@style{...}` block inside that step's `@md{...}` body.
 
 ## Bot Models
 
@@ -117,12 +142,22 @@ Studies should provide a `*-with-admin` variant. Bot models dispatch on step pat
 ```
 Use `make-autofill-meta` in forms to define autofill values for each bot kind.
 
+The second argument (`bot` above) is the *default continuation* for the
+step; congame examples often name it `proc` and fall through with
+`(proc)` — e.g. `(match k [`(*root* end) bot:completer] [_ (proc)])`.
+For a study with only a terminal completer, the simplest form is inline
+in `defstudy`: `[end (with-bot end bot:completer)]` (see
+`congame-example-study/conscript-with-admin.rkt`). All three shapes are
+equivalent; use the `make-bot-model` form above when different bot
+"kinds" autofill different values.
+
 ## Checklist
 
 When writing or reviewing a study:
 - Every `defvar/instance` mutation is inside `with-study-transaction`
 - Forms use `(required)` validation on all fields
-- Treatment assignment uses balanced shuffle (groups of 2 or 4)
+- Treatment assignment (if the study has treatments) uses balanced
+  shuffle (groups of 2 or 4) or `assigning-treatments`
 - `(skip)` is called at end of computation-only steps
 - Study ends with `,(lambda () done)` not `∅`
 - Bot model handles all steps (especially wait/refresh steps with `(void)`)

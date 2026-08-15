@@ -12,6 +12,10 @@ plugin teaches Claude how to write, review, and deploy Conscript studies.
 - **A project directory** with study `.rkt` files (or an empty one to
   start)
 - **Claude Code** — CLI, VS Code extension, or desktop app
+- **A running congame server** — only needed for `/upload` and for
+  testing (`/study-review`, `/playwright-test`). Writing and
+  code-reviewing studies works without one. Running a server locally
+  currently needs Docker (see the congame docs).
 
 ## Setup
 
@@ -42,7 +46,8 @@ editor for `.rkt` files alongside Claude's output.
 | Skill | What it does |
 |-------|-------------|
 | `/create-study` | Generate a new study. On first run, asks about your project to create a `study-config.md` that persists your answers for all future runs. Then generates a `.rkt` file. |
-| `/study-review` | QA an existing study against a checklist |
+| `/study-review` | QA an existing study. Runs a static checklist plus a **server-optional adversarial pass** (parallel agents hunting technical, design-fidelity, and idiomatic bugs the compiler and checklist miss). When your project has a Playwright suite, then runs a test-first review that lands as a PR; otherwise a manual test. |
+| `/playwright-test` | Write a design-faithful Playwright end-to-end test that runs participants through a study on a congame server. |
 | `/upload` | Deploy a study to a congame server |
 
 ## Creating your first study
@@ -70,11 +75,19 @@ steps, forms, variables, study flow, CSS, and a `-with-admin` variant
 
 - **Study:** A sequence of steps (pages) participants go through
 - **Step:** One page — can show content, collect form input, or run logic
+- **Instance:** A running deployment of a study on a server, identified
+  by a **slug** you choose when you create it in the admin UI
+  (`<server>/admin`). Participants join an instance at
+  `<server>/_anon-login/<slug>`. You must create an instance before
+  anyone (or any test) can run the study.
 - **`-with-admin` variant:** Every study needs one. It wraps the study
   with bot models so you can test it without clicking through manually.
 - **Bot models:** Automated test actors that drive a headless Firefox
   browser via Marionette, filling forms and clicking buttons to verify
   the study works.
-- **`study-config.md`:** Created by `/create-study` on first use. Stores
-  your project's domain, study patterns, and paths to example repos.
-  Read by Claude on every future `/create-study` invocation.
+- **`study-config.md`:** The project configuration file, created on
+  first use by whichever skill needs it (not only `/create-study`), and
+  hand-editable thereafter. Stores your project's domain, study patterns,
+  naming and design-doc conventions, servers, and Playwright setup. Read
+  by every skill so their behavior matches your project. The schema and
+  first-run setup live in the `study-config` skill.

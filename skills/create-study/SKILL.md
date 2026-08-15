@@ -17,19 +17,11 @@ Before starting, load the `coding`, `racket-coding`, and
 
 ## Initialization
 
-If no `study-config.md` exists in the project root, create one before
-proceeding. Ask the user:
-
-1. Do you have a .md file describing your study patterns? If yes, use it.
-2. If no: what research domain, typical study structure (rounds,
-   treatments, measurements), constraints (consent, payment, CSS),
-   and naming conventions?
-3. Where is the congame repo? Any other repos with example studies?
-
-Write answers to `study-config.md`. This file is then used by the
-`examples` skill and by future `/create-study` invocations to find
-patterns and match project conventions. Then continue to create the
-study — do not stop and ask the user to re-invoke.
+This study will match the project's conventions, which live in
+`study-config.md` (schema and defaults in the `study-config` skill). If
+that file does not yet exist in the project root, load the `study-config`
+skill and run its first-run setup to create one, then continue creating
+the study — do not stop and ask the user to re-invoke.
 
 ## Create Study
 
@@ -40,5 +32,7 @@ study — do not stop and ask the user to re-invoke.
    patterns (see the `examples` skill for search heuristics).
 4. Generate a `.rkt` file following the `coding` skill conventions.
    Include the `-with-admin` variant with bot models.
-5. Self-check against the `study-review` checklist. Fix issues.
+5. Self-check against the `study-review` checklist, then run its
+   server-optional adversarial pass (step 3b — parallel technical /
+   design-fidelity / idiomatic agents). Fix the findings.
 6. Present to user. Iterate. Offer `/upload` when ready.
