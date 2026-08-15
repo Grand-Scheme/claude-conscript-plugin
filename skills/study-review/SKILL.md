@@ -172,7 +172,7 @@ Skip this whole section for a solo survey or any study with a single arm.
 ### Data capture (graduated 2026-08-15 from ledger category `data-loss`, 6 entries)
 - [ ] Every per-wave / per-round collected value survives to durable
   storage: where waves reuse `defvar`s, audit the snapshot call's field
-  list list-against-list against every wave-body form field. (The
+  list against every wave-body form field. (The
   2026-07-08 panel lost every non-final wave's weather-merge inputs to
   exactly this drift — silent, discovered at analysis, unrecoverable.)
 - [ ] If the design needs per-wave timing (weather merges, attrition),
