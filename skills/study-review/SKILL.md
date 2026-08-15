@@ -169,6 +169,21 @@ Skip this whole section for a solo survey or any study with a single arm.
 - [ ] Form render functions use `@md*{...}` (fragment), not `@md{...}`
 - [ ] `@|submit-button|` is present in every form render function
 
+### Data capture (graduated 2026-08-15 from ledger category `data-loss`, 6 entries)
+- [ ] Every per-wave / per-round collected value survives to durable
+  storage: where waves reuse `defvar`s, audit the snapshot call's field
+  list against every wave-body form field. (The
+  2026-07-08 panel lost every non-final wave's weather-merge inputs to
+  exactly this drift — silent, discovered at analysis, unrecoverable.)
+- [ ] If the design needs per-wave timing (weather merges, attrition),
+  a per-wave timestamp is stored — wave answers cannot be dated
+  afterwards (ledger `no-per-wave-timestamp`: waves 2–3 unrecoverable).
+- [ ] Where the project keeps a design-derived manifest (e.g.
+  `check_manifest.py`), run it against a live export; on the
+  source-only path do the field-set audit and state that the live check
+  was skipped. A derived or ephemeral field deliberately not stored
+  gets one line saying so.
+
 ### Matchmaking (if applicable)
 - [ ] `make-matchmaker` is called once at module level, not inside a
   step
