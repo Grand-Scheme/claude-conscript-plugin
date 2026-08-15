@@ -52,7 +52,15 @@ export async function createInstanceById(browser: Browser, studyId: number, slug
  */
 export async function autofillFromMeta(page: Page): Promise<string[]> {
   const content = (await page.locator('meta[name="formular-autofill"]').first().getAttribute('content')) ?? '';
-  const pairs = [...content.matchAll(/\(([a-zA-Z][\w?%+*!-]*)\s*\.\s*"([^"]*)"\)/g)];
+  // Field names may be DOTTED (`b-invest.n`, `pol-lr.n`): the "prefer not to answer" idiom makes a
+  // sensitive item a composite of `.n` + `.pna` sub-fields, so the dot is part of the input name.
+  // The name class must admit `.` (lazily), and the pair separator is anchored by REQUIRED
+  // whitespace — with optional whitespace the engine eats the name-internal dot as the separator
+  // and silently drops (or mangles) every dotted field, so the form re-renders and the driver
+  // loops to maxSteps blaming the study. Ported verbatim from climate-heat dc23430 (2026-08-12),
+  // where the unported version cost a day of bot testing; ledger 2026-08-12-playwright-dotted-field-regex.
+  // Control: on `((pol-lr.n . "5") (b-cool . "40"))` the old pattern returns only b-cool; this one both.
+  const pairs = [...content.matchAll(/\(([a-zA-Z][\w?%.-]*?)\s+\.\s+"([^"]*)"\)/g)];
   const filled: string[] = [];
   for (const [, name, val] of pairs) {
     if (await page.locator(`select[name="${name}"]`).count()) {

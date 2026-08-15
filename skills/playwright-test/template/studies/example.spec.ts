@@ -32,7 +32,10 @@ test('study runs end-to-end without a runtime error', async ({ browser }) => {
     // your study: assert specific fields were filled, or a wait-gate/matchmaking step was traversed.
     expect(r.finalText.length, 'should reach a non-empty terminal page').toBeGreaterThan(0);
     // e.g. expect(r.filledFields).toContain('my-required-field');
-    // e.g. expect(r.sawWaitingPage).toBe(true);
+    // AVOID asserting sawWaitingPage: whether the driver OBSERVES the wait page is a race against
+    // the gate opening (a fast server clears it before the first check) — such an assertion is
+    // flaky by construction unless the gate is guaranteed longer than one poll interval.
+    // (Ledger 2026-08-13-sawwaitgate-race: the sibling harness's identical assertion was a logged bug.)
   } finally {
     await ctx.close();
   }

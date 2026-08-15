@@ -506,7 +506,11 @@ already has its own library.
 reads each page's own `make-autofill-meta` (the same bot answers the marionette
 bots use) and fills by field name. This is the fastest "does the code run at
 all" check — it exercises every reached page's render + validators and fails
-on any server error, unreachable step, or stuck gate. It is a SMOKE test, not
+on any server error, unreachable step, or stuck gate. One blind spot: a
+dead-end page (no form, no button, no refresh) is indistinguishable from
+successful completion, so always tighten the terminal assertion to your
+study's actual completion text rather than `finalText.length > 0`. It is a
+SMOKE test, not
 a design-fidelity test: it submits whatever the study says its bot answers are,
 so it cannot tell you the study implements the intended *experiment* (that's
 what the hand-written, design-derived specs in sections 2–4 are for). Reach for
