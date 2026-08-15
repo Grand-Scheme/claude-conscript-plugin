@@ -125,16 +125,14 @@ Two graduated rules apply as findings in their own right:
    you have seen it red).
 2. **repair-introduced** — a fix applied in the final round with no
    fresh pass over it is a finding. (This inherits the standing
-   fix→review→fix invariant; like every rule here, override with a
-   stated reason is allowed.)
+   fix→review→fix invariant.)
 
-**Override principle (Marc, verbatim intent): every ledger hit is
-advisory.** Dismiss explicitly — one line saying why — only the
-classes that were genuine close calls (the anti_pattern's shape
-appears in this study but is handled). For everything else one summary
-line suffices: "Checked all N conscript ledger entries; besides the
-findings and close calls above, none apply." The ledger gates
-attention, never action.
+**Dismissals.** A class the study demonstrably handles is not a
+finding. Dismiss explicitly — one line saying why — only the genuine
+close calls (the anti_pattern's shape appears in this study but is
+handled). For everything else one summary line suffices: "Checked all
+N conscript ledger entries; besides the findings and close calls
+above, none apply."
 
 ### Structure
 - [ ] File starts with `#lang conscript`
