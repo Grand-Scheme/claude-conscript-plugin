@@ -66,6 +66,165 @@ treatment assignment):
 Use `defvar*` / `defvar*/instance` with `with-namespace` to share data
 between parent and child.
 
+### Composing Studies with Units
+
+Use this when one place in a parent study must accept any of several
+interchangeable sub-studies, when a sub-study must not know which parent
+uses it, when the parent needs a calculation back (a function, not just
+a value), or when the study around the sub-studies is worth writing once
+as a function. Otherwise use a plain child study with `defstep/study`
+and `defvar*` (see the parent-child tutorial); units are more machinery
+than most studies need.
+
+ALWAYS read the tutorial "Advanced Study Composition with Units"
+(https://docs.totalinsightmanagement.com/congame/units-tutorial.html;
+`congame-doc/conscript-tutorial-units.scrbl` in the congame source)
+before writing or changing a composed study. Its Guidelines section
+lists each mistake with the error it produces. Most of the mistakes
+below produce no error at all, only wrong or mixed-up data. For a
+project-wide framework (many studies inside the same standard pages),
+use the `compose-studies` skill, which builds on the rules here.
+
+Shape: signatures name the "plugs"; each sub-study is a `unit` that
+imports what it needs and exports its study; the parent invokes the
+unit inside a scope and wires the exports into its flow.
+
+```racket
+;; signatures.rkt — define each signature once, apart from the studies
+(provide fee^ study^ payment^)
+(define-signature fee^ [get-fee])
+(define-signature study^ [study])
+(define-signature payment^ [compute-payment])
+
+;; task.rkt  (#lang conscript/with-require, requires "signatures.rkt")
+(provide task@)
+(define-static-resource css "common.css")            ;; outside the unit
+(define task@
+  (unit (import fee^) (export study^ payment^)
+    (with-namespace my-lab.task (defvar* task-payout))
+    (define (compute-payment) task-payout)
+    ;; ... steps; pages call (get-fee) while they are shown ...
+    (defstudy study                                   ;; the name study^ promises
+      #:wrapper @add-css-resource[css]
+      [intro --> problems --> ,(lambda () done)])))
+
+;; parent.rkt
+(with-namespace my-lab.parent
+  (defvar* selected-task)                             ;; a symbol, never the unit
+  (defvar* task-payment))
+(define tasks (list (cons 'counting counting@) (cons 'lottery lottery@)))
+(defstep (pick-task)                                  ;; decide once, in a step
+  (set! selected-task (car (list-ref tasks (random (length tasks)))))
+  (skip))
+(defstep/study run-task
+  #:study (lambda ()                                  ;; only looks the choice up
+            (define task@ (cdr (assq selected-task tasks)))
+            (define (get-fee) participation-fee)      ;; imports are matched by name
+            (define-values/invoke-unit task@ (import fee^) (export study^ payment^))
+            (define (record) (set! task-payment (compute-payment)) (skip))
+            (defstudy task+record
+              [{,selected-task study} --> record --> ,(lambda () done)])
+            task+record))
+```
+
+Rules:
+
+- Invoke a unit only inside a `let` body or a `lambda`, never at module
+  level. The exports become definitions in that scope; every unit
+  exports `study`, so two invocations at module level fail with
+  `identifier already defined`.
+- `define-values/invoke-unit` is a definition, not an expression. Put
+  it where a `define` can go; inside `(define s (begin ...))` or a
+  function argument it fails with `not allowed in an expression
+  position`.
+- Define every imported name in the same scope, spelled exactly as the
+  signature spells it, before `define-values/invoke-unit`. A missing
+  import fails with `unbound identifier`; a similar name does not help.
+- Decide which unit to run in its own step and store the decision in a
+  `defvar*` as a symbol or a number, never the unit itself. The
+  `#:study` lambda runs again every time a participant enters the step,
+  including on resume; if it chose on its own it could put a returning
+  participant in a different sub-study. The lambda reads stored values
+  and builds a study, nothing more.
+- When one step can run more than one unit, run the unit's study under
+  a step name of its own: `{,selected-task study}`, not `study`. Stored
+  values, `defvar/instance` state, and `make-matchmaker` state are filed
+  by step path; without a distinct name every unit shares the path
+  `run-task / study`, and two sub-studies silently share their
+  `treatments` list and their matchmaking pool. No error is raised.
+  A parent that gives each unit a separate step of its own (fixed
+  order) needs nothing extra.
+- The `{,expr step}` step ID must be the same every time the study is
+  built, including after a server restart. Compute it from constants or
+  stored variables, never with `random`, `gensym`, or the time; a
+  changed ID fails with `failed to resume step in study` and orphans the
+  stored data. Write the form once per step, and do not refer to that
+  step by a bare name in another clause (return its ID from a
+  transition lambda instead). It needs a congame server with runtime
+  step IDs (`defstudy` reference, "step-spec").
+- `assigning-treatments` (survey-tools) stores its list at the top of
+  the study, outside any step path. Two sub-studies that both call it
+  need distinct `#:treatments-key` arguments.
+- Anything that crosses between a unit's study and the study around it
+  is a `defvar*` inside a `with-namespace`: every study variable an
+  exported function reads, a fee the parent sets, the choice of unit, a
+  payment the parent records. A plain `defvar` there raises no error; the
+  page shows `undefined`. Use the step name, not a namespace, to keep a
+  sub-study's own state to itself.
+- Call imported names only from inside steps, never at the top level of
+  the unit. The unit body runs when it is invoked, which may be at
+  module load with no participant present. Text that shows the fee is a
+  function called from a step.
+- A study that runs a unit through a `#:study` lambda cannot get a
+  congame bot: `study->bot` walks the steps ahead of time and fails
+  on a lambda (`study-steps: contract violation`). Test such studies
+  with Playwright, not `-with-admin` bots.
+- Do not keep participant data in a plain `define` inside a unit. The
+  body runs again on each invocation; only `defvar` / `defvar*` values
+  survive.
+- A sub-study's last page has a button and its flow ends with
+  `,(lambda () done)`. The parent owns consent, sociodemo, payment, and
+  thank-you pages.
+- When the parent is a function that takes units as arguments, keep the
+  `defvar*` declarations at module level and everything else (steps,
+  `defstep/study`, `defstudy`) inside the function. The function body
+  runs at load time, so it may define steps and check its arguments but
+  must not read a study variable. Store the choice as a position in the
+  argument list and name the step from it (`substudy-0`, `substudy-1`,
+  ...); once participants have started, do not reorder the arguments.
+  Invoke each unit once in the body and discard the result, so a unit
+  that does not fit fails at upload rather than on a participant's
+  screen.
+- Define each signature once, in a file apart from the studies. A
+  signature defined twice is two different signatures, and a unit
+  written against one will not plug into a parent written against the
+  other. One file for all signatures or one file each
+  (`#lang racket/signature`) is a matter of taste; follow the project.
+- Keep `define-static-resource` at module level, outside the unit.
+  `raco congame upload` collects resources when the module is
+  instantiated, before any unit body runs; a resource defined inside
+  the unit is silently left out of the upload.
+- `#lang conscript/with-require` is needed for `(require
+  "signatures.rkt")` (see the with-require notes on who can upload);
+  `unit`, `import`, `export`, and `define-values/invoke-unit` are
+  available in plain `#lang conscript` as well. The language is a
+  subset of Racket (`range` is missing; use `build-list` or
+  `in-range`).
+- To keep a converted study runnable on its own, invoke its unit once
+  at module level inside a `let` with fixed imports and `provide` both
+  the unit and the resulting study:
+  `(define task-alone (let () (define (get-fee) 1.30) (define-values/invoke-unit task@ (import fee^) (export study^ payment^)) study))`.
+
+To convert an existing study: switch to `#lang conscript/with-require`
+and require the signatures; wrap the body in `(unit (import ...)
+(export ...) ...)` and provide the unit; replace each value the study
+used to supply itself (the fee) with a call to the imported function,
+made while a page is shown; make sure the unit defines each exported
+name exactly (`study`, `compute-payment`); end the flow with a button
+and `,(lambda () done)` and drop the pages the parent provides; turn
+every variable an exported function reads into a `defvar*` in a
+namespace named after the study.
+
 ## Variables
 
 ### `defvar` — Per-Participant Variable

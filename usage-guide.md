@@ -49,6 +49,7 @@ editor for `.rkt` files alongside Claude's output.
 | `/study-review` | QA an existing study. Runs a static checklist plus a **server-optional adversarial pass** (parallel agents hunting technical, design-fidelity, and idiomatic bugs the compiler and checklist miss). When your project has a Playwright suite, then runs a test-first review that lands as a PR; otherwise a manual test. |
 | `/playwright-test` | Write a design-faithful Playwright end-to-end test that runs participants through a study on a congame server. |
 | `/upload` | Deploy a study to a congame server |
+| `/compose-studies` | Set up a composition framework so many studies run inside the same standard pages (consent, demographics, payment, thank-you), then convert studies into composable units and add them. Records the framework in `study-config.md`, after which `/create-study` writes new studies as units. |
 
 ## Creating your first study
 
@@ -85,6 +86,11 @@ steps, forms, variables, study flow, CSS, and a `-with-admin` variant
 - **Bot models:** Automated test actors that drive a headless Firefox
   browser via Marionette, filling forms and clicking buttons to verify
   the study works.
+- **Unit / composition:** A study packaged as a *unit* declares what it
+  needs from the study around it (e.g. the participation fee) and what
+  it hands back (the study, its payment). A *compose function* takes
+  such units and wraps them in the project's standard pages. See the
+  congame [units tutorial](https://docs.totalinsightmanagement.com/congame/units-tutorial.html).
 - **`study-config.md`:** The project configuration file, created on
   first use by whichever skill needs it (not only `/create-study`), and
   hand-editable thereafter. Stores your project's domain, study patterns,
