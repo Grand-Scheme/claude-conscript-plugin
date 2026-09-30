@@ -191,6 +191,37 @@ Skip this whole section for a solo survey or any study with a single arm.
 - [ ] Opponent data retrieval checks for `#f` before displaying results
 - [ ] Wait page includes `@meta[#:name "wait"]` for bot detection
 
+### Units (if the study is or composes a `unit`)
+Most of these fail silently. The rules and their reasons are in the
+`conscript-coding` skill ("Composing Studies with Units").
+- [ ] No `define-values/invoke-unit` at module level except inside a
+  `let` (a standalone study built from the unit)
+- [ ] Nothing at the top level of a unit body, or of a parent function's
+  body, reads a study variable; imported functions are called only
+  from inside steps
+- [ ] Every study variable an exported function reads, and everything
+  written inside the unit's step and read outside it, is a `defvar*`
+  inside `with-namespace`
+- [ ] The choice of unit is made in its own step and stored as a symbol
+  or number; the `#:study` lambda only looks it up (no `random`, no
+  `set!`)
+- [ ] Where one step can run more than one unit, the unit's study runs
+  as `{,id study}`, with `id` computed from the stored choice
+- [ ] Each exported study ends with a button and `,(lambda () done)`,
+  with no consent or thank-you page of its own
+- [ ] `define-static-resource` is at module level, outside the unit
+- [ ] Two sub-studies that call `assigning-treatments` pass distinct
+  `#:treatments-key` values
+- [ ] If the study is already live: the order of units (or the names
+  the step IDs are made from) has not changed
+- [ ] In a composed study, consent comes before the step that assigns
+  the unit. If it does not, the recorded reason is a design requirement
+  (not "the consent page names the study") and declines are stored per
+  unit (differential dropout)
+- [ ] No `-with-admin` variant wraps a study that dispatches through a
+  `#:study` lambda: congame cannot build a bot for it (see
+  `compose-studies`, "Known limits"). Test it with Playwright instead
+
 ### Bot testing
 - [ ] `make-admin-study` wraps the main study with `#:models`
 - [ ] Bot model has a clause for every step in the study
