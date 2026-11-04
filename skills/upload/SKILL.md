@@ -69,5 +69,7 @@ first.
 
 ## Testing after upload
 
-After uploading, the study can be tested at:
-`<server>/_anon-login/<study-id>`
+After uploading, create an instance of the study in the admin UI (`<server>/admin`), giving it a slug; participants and tests then enter at:
+`<server>/_anon-login/<slug>`
+
+The study id names the study on the server; the slug names one running instance of it. They are different things, and an upload does not create an instance.
