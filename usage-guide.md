@@ -19,24 +19,26 @@ plugin teaches Claude how to write, review, and deploy Conscript studies.
 
 ## Setup
 
-### CLI
+### CLI, for one session
 
 ```bash
 cd ~/projects/your-study-project
 claude --plugin-dir ~/projects/claude-conscript-plugin
 ```
 
-### VS Code
+`--plugin-dir` loads the plugin for that session only.
+
+### VS Code, and every later session without a flag
 
 1. Install the [Claude Code extension](https://marketplace.visualstudio.com/items?itemName=anthropics.claude-code) from the VS Code marketplace
-2. Open your study project folder in VS Code
-3. Add the plugin path to your project's `.claude/settings.json`:
-   ```json
-   {
-     "plugins": ["~/projects/claude-conscript-plugin"]
-   }
+2. Clone this repository, for example to `~/projects/claude-conscript-plugin`
+3. Link it into the folder where Claude Code looks for skills:
+   ```bash
+   mkdir -p ~/.claude/skills
+   ln -s ~/projects/claude-conscript-plugin ~/.claude/skills/claude-conscript-plugin
    ```
-4. Open the Claude Code panel in VS Code and use skills as normal
+   A link, so pulling the repository updates the plugin. Check: in a new session, type `/` and the list includes `claude-conscript-plugin:create-study`.
+4. Open your study project folder in VS Code, open the Claude Code panel and use the skills as normal
 
 VS Code is recommended for users who prefer a GUI — it provides an
 editor for `.rkt` files alongside Claude's output.
