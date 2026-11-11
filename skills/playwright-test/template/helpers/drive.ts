@@ -60,9 +60,13 @@ export async function autofillFromMeta(page: Page): Promise<string[]> {
   // loops to maxSteps blaming the study. Ported verbatim from climate-heat dc23430 (2026-08-12),
   // where the unported version cost a day of bot testing; ledger 2026-08-12-playwright-dotted-field-regex.
   // Control: on `((pol-lr.n . "5") (b-cool . "40"))` the old pattern returns only b-cool; this one both.
-  const pairs = [...content.matchAll(/\(([a-zA-Z][\w?%.-]*?)\s+\.\s+"([^"]*)"\)/g)];
+  // Values are strings (`"5"`) or bare numbers (`5`): congame's marionette bots require a number
+  // for a `type=number` field, so autofill metadata for number fields is written unquoted, and a
+  // string-only pattern skips those fields and the form re-renders.
+  const pairs = [...content.matchAll(/\(([a-zA-Z][\w?%.-]*?)\s+\.\s+(?:"([^"]*)"|(-?[\d.]+))\)/g)];
   const filled: string[] = [];
-  for (const [, name, val] of pairs) {
+  for (const [, name, str, num] of pairs) {
+    const val = str ?? num;
     if (await page.locator(`select[name="${name}"]`).count()) {
       await page.selectOption(`select[name="${name}"]`, val);
     } else if (await page.locator(`input[type="radio"][name="${name}"]`).count()) {

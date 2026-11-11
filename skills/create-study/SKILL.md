@@ -32,6 +32,15 @@ the study — do not stop and ask the user to re-invoke.
    patterns (see the `examples` skill for search heuristics).
 4. Generate a `.rkt` file following the `coding` skill conventions.
    Include the `-with-admin` variant with bot models.
+   If `study-config.md` has a `## Composition` section and new studies
+   are units (the default there), write the study as a unit that fits
+   the project's signatures, leave out the pages the shared-pages module
+   owns, and add a standalone version built from the unit; the
+   `compose-studies` skill ("Convert") lists what that involves. Skip
+   the `-with-admin` variant if the standalone is built by calling the
+   compose function (no bot can be built for it; see that skill's
+   "Known limits"), and say so. Then ask whether to add it to a
+   composed study now.
 5. Self-check against the `study-review` checklist, then run its
    server-optional adversarial pass (step 3b — parallel technical /
    design-fidelity / idiomatic agents). Fix the findings.

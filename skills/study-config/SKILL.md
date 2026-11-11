@@ -9,11 +9,12 @@ user-invocable: false
 
 `study-config.md` is a plain-Markdown file in the project root that
 records a project's conventions — where its studies live, how they are
-named, whether it keeps design documents or a Playwright test suite, and
-which servers it deploys to. The `create-study`, `examples`,
-`study-review`, `playwright-test`, and `upload` skills read it so their
-behavior matches the project at hand instead of assuming one lab's
-layout.
+named, whether it keeps design documents or a Playwright test suite,
+which servers it deploys to, and whether its studies plug into a
+composition framework. The `create-study`, `compose-studies`,
+`examples`, `study-review`, `playwright-test`, and `upload` skills read
+it so their behavior matches the project at hand instead of assuming
+one lab's layout.
 
 Every field and every section is **optional**. When a field or section
 is absent, the consuming skill falls back to the documented default
@@ -67,6 +68,22 @@ only a convenience for producing one, never a gate.
   the repo uses for AI-assisted commits; "none" if not used)
 - Issue linking: ... (whether to add "Related to #N" linking a tracking
   issue; "no" if not used)
+
+## Composition
+(Omit this whole section until the project has a composition framework —
+the `compose-studies` skill sets one up and writes this section.)
+- Signatures: ... (file, e.g. `experiments/sigs.rkt`, and the signature
+  names: e.g. imports `fee^`; exports `study^`, `payment^`)
+- Shared pages: ... (module, e.g. `experiments/common-pages.rkt`)
+- Compose function: ... (module and name, e.g.
+  `experiments/compose-studies.rkt` → `compose-studies`; its keyword
+  arguments and defaults, e.g. `#:fee 1.30`, `#:group-size 4`)
+- Assignment: ... (per participant at random / balanced / whole groups
+  of N; after consent by default — if before, the reason)
+- Composed studies: ... (the files that call the compose function)
+- Converted studies: ... (units so far; the rest are plain studies)
+- New studies: unit / plain (default: unit — `create-study` writes new
+  studies as units that fit the signatures)
 ```
 
 ## First-run setup
@@ -94,7 +111,9 @@ affect later skills are the **example-repo path** and the **study file
 location** — make sure those are captured; the rest is optional. Write
 the answers to `study-config.md`, omitting fields the user does not know
 (their defaults apply) and whole sections that do not apply (e.g. the
-Review-pipeline section when there is no Playwright suite).
+Review-pipeline section when there is no Playwright suite). Do not ask
+about composition here; the `compose-studies` skill writes that section
+when the project sets up a framework.
 
 A skill that needs only one or two fields — e.g. `upload` resolving a
 study path, or `study-review` checking only whether a Playwright suite

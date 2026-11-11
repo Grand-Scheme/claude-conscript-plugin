@@ -19,6 +19,7 @@ In the congame repo:
 | `conscript/examples/` | Small focused examples: `kitchen-sink.rkt` (full flow, forms, consent branching, nested study), `form.rkt` (minimal form), `with-require.rkt` (external modules) |
 | `congame-example-study/` | Larger examples including conscript studies — look for files/folders starting with `conscript-` or files using `#lang conscript` |
 | `congame-doc/conscript-examples/` | `tutorial.rkt` (simple survey with variable interpolation) |
+| `congame-example-study/many-designs-composition/` | Composing studies written as units: one file per signature (`fee-sig.rkt`, `study-sig.rkt`, `payment-sig.rkt`), two unit sub-studies (`abc.rkt`, `cde.rkt`), one plain study (`fgh.rkt`), a fixed-order parent (`many-designs.rkt`), and a parent that picks a unit at random under a runtime step ID (`random-designs.rkt`). Tutorial: `congame-doc/conscript-tutorial-units.scrbl` |
 
 ## Search heuristics
 
@@ -34,6 +35,9 @@ for these strings to find reference implementations:
 | Wait pages | `refresh-every` |
 | Bot testing | `make-bot-model` |
 | Autofill metadata | `make-autofill-meta` |
+| Composing studies with units | `define-values/invoke-unit` |
+| Unit signatures | `define-signature` |
+| Runtime step IDs | `{,` inside `defstudy` |
 
 Search in congame examples first, then project-specific studies, then
 other repos listed in `study-config.md`. These greps also hit library
